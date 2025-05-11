@@ -1,6 +1,6 @@
 package main
 
-import "daxa/cli/cmd"
+import "github.com/kraytonsoft/daxa/cli/cmd"
 
 func main() {
 	cmd.Execute()

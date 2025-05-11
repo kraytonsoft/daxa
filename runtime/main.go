@@ -1,8 +1,8 @@
 package main
 
 import (
-	"daxa/runtime/handlers"
-	"daxa/runtime/registry"
+	"github.com/kraytonsoft/daxa/runtime/handlers"
+	"github.com/kraytonsoft/daxa/runtime/registry"
 	"log"
 	"net/http"
 )

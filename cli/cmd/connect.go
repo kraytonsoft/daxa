@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	kontext "daxa/cli/kontext"
 	"fmt"
 	"github.com/spf13/cobra"
 )
@@ -13,7 +12,7 @@ var connectCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 		host := args[1]
-		err := kontext.SaveContext(name, host)
+		err := SaveContext(name, host)
 		if err != nil {
 			return err
 		}

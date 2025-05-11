@@ -1,9 +1,8 @@
 package registry
 
 import (
-	"daxa/runtime/types"
-	"daxa/sdk/daxa"
 	"fmt"
+	"github.com/kraytonsoft/daxa/runtime/types"
 	"net/http"
 	"plugin"
 	"sync"
@@ -38,13 +37,13 @@ func (fr *FunctionRegistry) Register(fn types.Function) error {
 		return fmt.Errorf("missing Handler symbol: %w", err)
 	}
 
-	daxaFn, ok := sym.(func(daxa.RequestContext) (daxa.Response, error))
+	daxaFn, ok := sym.(func(types.RequestContext) (types.Response, error))
 	if !ok {
 		return fmt.Errorf("invalid handler signature")
 	}
 
 	httpHandler := func(w http.ResponseWriter, r *http.Request) {
-		ctx := daxa.RequestContext{
+		ctx := types.RequestContext{
 			Request: r,
 			Writer:  w,
 		}

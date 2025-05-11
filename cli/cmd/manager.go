@@ -1,4 +1,4 @@
-package contextpackage
+package cmd
 
 import (
 	"encoding/json"

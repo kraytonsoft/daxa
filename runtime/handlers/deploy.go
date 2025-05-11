@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"archive/zip"
-	"daxa/runtime/compiler"
-	"daxa/runtime/registry"
-	"daxa/runtime/types"
 	"encoding/json"
+	"github.com/kraytonsoft/daxa/runtime/compiler"
+	"github.com/kraytonsoft/daxa/runtime/registry"
+	"github.com/kraytonsoft/daxa/runtime/types"
 	"io"
 	"net/http"
 	"os"

@@ -1,4 +1,3 @@
-// 📁 cli/cmd/deploy.go
 package cmd
 
 import (
