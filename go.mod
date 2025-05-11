@@ -1,4 +1,4 @@
-module daxa
+module github.com/kraytonsoft/daxa
 
 go 1.24
 
