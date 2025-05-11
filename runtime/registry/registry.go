@@ -2,26 +2,24 @@ package registry
 
 import (
 	"daxa/runtime/types"
+	"daxa/sdk/daxa"
 	"fmt"
 	"net/http"
 	"plugin"
 	"sync"
 )
 
-// VersionedHandler keeps track of a specific version of a function
 type VersionedHandler struct {
 	Version int
 	Handler http.HandlerFunc
 }
 
-// FunctionRegistry stores versions and active handler per route
 type FunctionRegistry struct {
 	mu       sync.RWMutex
 	versions map[string][]VersionedHandler
 	latest   map[string]http.HandlerFunc
 }
 
-// New creates a new empty registry
 func New() *FunctionRegistry {
 	return &FunctionRegistry{
 		versions: make(map[string][]VersionedHandler),
@@ -29,62 +27,54 @@ func New() *FunctionRegistry {
 	}
 }
 
-// Register loads a Go plugin and stores it in the registry
 func (fr *FunctionRegistry) Register(fn types.Function) error {
 	p, err := plugin.Open(fn.PluginPath)
 	if err != nil {
-		return fmt.Errorf("plugin load error: %w", err)
+		return fmt.Errorf("failed to load plugin: %w", err)
 	}
 
 	sym, err := p.Lookup("Handler")
 	if err != nil {
-		return fmt.Errorf("plugin symbol 'Handler' not found")
+		return fmt.Errorf("missing Handler symbol: %w", err)
 	}
 
-	handler, ok := sym.(func(http.ResponseWriter, *http.Request))
+	daxaFn, ok := sym.(func(daxa.RequestContext) (daxa.Response, error))
 	if !ok {
-		return fmt.Errorf("Handler has invalid signature")
+		return fmt.Errorf("invalid handler signature")
+	}
+
+	httpHandler := func(w http.ResponseWriter, r *http.Request) {
+		ctx := daxa.RequestContext{
+			Request: r,
+			Writer:  w,
+		}
+		resp, err := daxaFn(ctx)
+		if err != nil {
+			http.Error(w, "Function error", 500)
+			return
+		}
+		for k, v := range resp.Headers {
+			w.Header().Set(k, v)
+		}
+		w.WriteHeader(resp.Status)
+		w.Write(resp.Body)
 	}
 
 	fr.mu.Lock()
 	defer fr.mu.Unlock()
 
 	version := len(fr.versions[fn.Path]) + 1
-
 	fr.versions[fn.Path] = append(fr.versions[fn.Path], VersionedHandler{
 		Version: version,
-		Handler: handler,
+		Handler: httpHandler,
 	})
-
-	fr.latest[fn.Path] = handler
+	fr.latest[fn.Path] = httpHandler
 	return nil
 }
 
-// Handler returns the most recent handler for a route
 func (fr *FunctionRegistry) Handler(path string) (http.HandlerFunc, bool) {
 	fr.mu.RLock()
 	defer fr.mu.RUnlock()
 	h, ok := fr.latest[path]
 	return h, ok
-}
-
-// Rollback swaps the active handler to a previous version
-func (fr *FunctionRegistry) Rollback(path string, version int) error {
-	fr.mu.Lock()
-	defer fr.mu.Unlock()
-
-	versions, ok := fr.versions[path]
-	if !ok || version < 1 || version > len(versions) {
-		return fmt.Errorf("invalid rollback target")
-	}
-
-	fr.latest[path] = versions[version-1].Handler
-	return nil
-}
-
-// Versions returns the version count for a path
-func (fr *FunctionRegistry) Versions(path string) int {
-	fr.mu.RLock()
-	defer fr.mu.RUnlock()
-	return len(fr.versions[path])
 }

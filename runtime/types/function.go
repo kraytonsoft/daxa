@@ -1,13 +1,12 @@
 package types
 
-type Manifest struct {
-	Functions []Function `json:"functions"`
+type Function struct {
+	ID         string `json:"id"`
+	Method     string `json:"method"`
+	Path       string `json:"path"`
+	PluginPath string `json:"plugin"` // runtime-generated
 }
 
-// Function defines a deployable Go plugin handler
-type Function struct {
-	ID         string `json:"id"`     // e.g. "hello"
-	Method     string `json:"method"` // e.g. "GET"
-	Path       string `json:"path"`   // e.g. "/hello"
-	PluginPath string `json:"plugin"` // e.g. "hello.so"
+type Manifest struct {
+	Functions []Function `json:"functions"`
 }

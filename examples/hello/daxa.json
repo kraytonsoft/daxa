@@ -1,0 +1,10 @@
+{
+  "functions": [
+    {
+      "id": "hello",
+      "method": "GET",
+      "path": "/hello",
+      "plugin": ""
+    }
+  ]
+}
